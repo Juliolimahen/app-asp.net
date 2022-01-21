@@ -14,8 +14,14 @@ namespace MyTestApp.Models
         
         [DisplayName("Concluído")]
         public bool Done { get; set; }
+
+        [DisplayName("Data Início")]
+        [Required(ErrorMessage = "Campo obrigatório")]
         public DateTime CreatedAt {get ; set;} = DateTime.Now;
-        public DateTime LastUpadateDate { get; set; } = DateTime.Now;
+
+        [DisplayName("Data Fim")]
+        //[Required(ErrorMessage = "Campo obrigatório")]
+        public DateTime ? LastUpadateDate { get; set; }
         public string User {get; set;}
 
         public override bool Equals(object obj)

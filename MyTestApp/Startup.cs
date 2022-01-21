@@ -12,6 +12,8 @@ using MyTestApp.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 namespace MyTestApp
 {
@@ -53,6 +55,15 @@ namespace MyTestApp
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            
+            // definindo lingua   
+            var supportedCultures = new [] {new CultureInfo("pt-br")};
+            app.UseRequestLocalization(new RequestLocalizationOptions{
+                DefaultRequestCulture = new RequestCulture("pt-BR", "pt-BR"),
+                SupportedCultures= supportedCultures,
+                SupportedUICultures=supportedCultures
+                
+            });
 
             app.UseRouting();
 

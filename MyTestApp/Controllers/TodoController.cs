@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using MyTestApp.Models;
 
 namespace MyTestApp.Controllers
 {
+    [Authorize]
     public class TodoController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,7 +24,10 @@ namespace MyTestApp.Controllers
         // GET: Todo
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Todos.ToListAsync());
+            return View(await _context.Todos
+            .AsNoTracking()
+            .Where(x=> x.User == User.Identity.Name)
+            .ToListAsync());
         }
 
         // GET: Todo/Details/5
@@ -40,6 +45,10 @@ namespace MyTestApp.Controllers
                 return NotFound();
             }
 
+            if (todo.User != User.Identity.Name){
+                return NotFound();
+            }
+
             return View(todo);
         }
 
@@ -54,10 +63,11 @@ namespace MyTestApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Done,CreatedAt,LastUpadateDate,User")] Todo todo)
+        public async Task<IActionResult> Create([Bind("Id,Title,Done,CreatedAt")] Todo todo)
         {
             if (ModelState.IsValid)
             {
+                todo.User = User.Identity.Name;
                 _context.Add(todo);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -78,6 +88,7 @@ namespace MyTestApp.Controllers
             {
                 return NotFound();
             }
+
             return View(todo);
         }
 
@@ -86,7 +97,7 @@ namespace MyTestApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Done,CreatedAt,LastUpadateDate,User")] Todo todo)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Done,CreatedAt")] Todo todo)
         {
             if (id != todo.Id)
             {
@@ -97,6 +108,9 @@ namespace MyTestApp.Controllers
             {
                 try
                 {
+                    todo.User = User.Identity.Name;
+                    //todo.LastUpadateDate = DateTime.Now;
+                    
                     _context.Update(todo);
                     await _context.SaveChangesAsync();
                 }
@@ -113,6 +127,12 @@ namespace MyTestApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            if (todo.User != User.Identity.Name)
+            {
+                return NotFound();
+            }
+
             return View(todo);
         }
 
@@ -127,6 +147,12 @@ namespace MyTestApp.Controllers
             var todo = await _context.Todos
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (todo == null)
+            {
+                return NotFound();
+            }
+
+
+            if (todo.User != User.Identity.Name)
             {
                 return NotFound();
             }
